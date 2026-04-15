@@ -73,7 +73,7 @@ function Cadastro() {
 
     setCarregando(true)
     try {
-      await api.post('/api/auth/cadastro', { nome, cpf, telefone, email, senha })
+      await api.post('/cadastro', { nome, cpf, telefone, email, senha })
       navigate('/', { state: { cadastroSucesso: true } })
       alert('Cadastro efetuado com sucesso! Faça o login.')
     } catch (err) {

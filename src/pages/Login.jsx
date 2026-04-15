@@ -15,40 +15,41 @@ function Login() {
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   const btnAtivo = emailValido && senha.length >= 8
 
-    async function handleLogin(e) {
-        e.preventDefault()
-        setErro('')
-        setErroEmail('')
-        setErroSenha('')
+  async function handleLogin(e) {
+    e.preventDefault()
+    setErro('')
+    setErroEmail('')
+    setErroSenha('')
 
-        let valido = true
+    let valido = true
 
-        if (!email) {
-        setErroEmail('O e-mail não pode estar vazio.')
-        valido = false
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setErroEmail('Insira um e-mail válido.')
-        valido = false
-        }
-
-        if (senha.length < 8) {
-        setErroSenha('A senha precisa ter no mínimo 8 caracteres.')
-        valido = false
-        }
-
-        if (!valido) return
-
-        setCarregando(true)
-        try {
-        const resposta = await api.post('/api/auth/login', { email, senha })
-        localStorage.setItem('spl_token', resposta.data.token)
-        alert('Dashboard disponível em breve!')
-        } catch (err) {
-        setErro(err.response?.data?.erro || 'Usuário ou senha inválido.')
-        } finally {
-        setCarregando(false)
-        }
+    if (!email) {
+      setErroEmail('O e-mail não pode estar vazio.')
+      valido = false
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErroEmail('Insira um e-mail válido.')
+      valido = false
     }
+
+    if (senha.length < 8) {
+      setErroSenha('A senha precisa ter no mínimo 8 caracteres.')
+      valido = false
+    }
+
+    if (!valido) return
+
+    setCarregando(true)
+
+    try {
+      const resposta = await api.post('/login', { email, senha })
+      localStorage.setItem('spl_token', resposta.data.token)
+      alert('Dashboard disponível em breve!')
+    } catch (err) {
+      setErro(err.response?.data?.erro || 'Usuário ou senha inválido.')
+    } finally {
+      setCarregando(false)
+    }
+  }
 
   return (
     <div className="container">
