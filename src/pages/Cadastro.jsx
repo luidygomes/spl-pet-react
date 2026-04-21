@@ -73,9 +73,10 @@ function Cadastro() {
 
     setCarregando(true)
     try {
-      await api.post('/cadastro', { nome, cpf, telefone, email, senha })
-      navigate('/', { state: { cadastroSucesso: true } })
-      alert('Cadastro efetuado com sucesso! Faça o login.')
+      const resposta = await api.post('/cadastro', { nome, cpf, telefone, email, senha })
+      localStorage.setItem('spl_token', resposta.data.token)
+      navigate('/triagem', { state: { cadastroSucesso: true } })
+      alert('Cadastro efetuado com sucesso!')
     } catch (err) {
       setErro(err.response?.data?.erro || 'Erro ao cadastrar. Tente novamente.')
     } finally {

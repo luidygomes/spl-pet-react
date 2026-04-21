@@ -43,7 +43,11 @@ function Login() {
     try {
       const resposta = await api.post('/login', { email, senha })
       localStorage.setItem('spl_token', resposta.data.token)
-      alert('Dashboard disponível em breve!')
+      if (resposta.data.triagem_concluida === true) {
+        alert('Dashboard disponível em breve!')
+      } else if (resposta.data.triagem_concluida === false) {
+        navigate('/triagem')
+      }
     } catch (err) {
       setErro(err.response?.data?.erro || 'Usuário ou senha inválido.')
     } finally {
