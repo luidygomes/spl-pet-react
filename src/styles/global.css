@@ -1,12 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 * {
   margin: 0;
   padding: 0;
 }
 
 body {
-  background-color: #f0f4f8;
+  background-color: #f4f8f5;
   font-family: sans-serif;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
 }
 
 #root {
@@ -19,7 +27,7 @@ body {
 
 .card {
   margin: 40px 0 40px 0;
-  width: 420px;
+  width: 500px;
   padding: 0 0 40px 0; 
   background-color: white;
   border-radius: 8px;
@@ -31,7 +39,6 @@ body {
   padding-top: 28px;
   font-weight: bold;
   font-size: 25px;
-  margin-left: 45px;
 }
 
 .logo {
@@ -66,25 +73,25 @@ body {
   cursor: pointer;
 }
 
-form {
+.form-auth {
   display: flex;
   flex-direction: column;
   margin-top: 15px;
   padding: 0 45px;
 }
 
-.form h2 {
+.form-auth h2 {
   color: black;
 }
 
-form label {
+.form-auth label {
   align-self: flex-start;
   margin-bottom: 5px;
   font-size: 14px;
   color: black; 
 }
 
-form input {
+.form-auth input {
   width: 100%;
   height: 40px;
   border-radius: 10px;
@@ -96,13 +103,13 @@ form input {
   font-size: 14px;
 }
 
-form input:focus,
-form input:active {
+.form-auth input:focus,
+.form-auth input:active {
   outline: none;
   border: 1px solid #1E6F5C;
 }
 
-button[type="submit"] {
+.btn-auth {
   background-color: #1E6F5C;
   color: white;
   margin-top: 10px;
@@ -115,7 +122,7 @@ button[type="submit"] {
   cursor: pointer;
 }
 
-button[type="submit"]:disabled {
+.btn-auth:disabled {
   opacity: 0.5;
   cursor: default;
 }
@@ -133,7 +140,7 @@ button[type="submit"]:disabled {
   cursor: pointer;
 }
 
-p {
+.text-auth {
   text-align: center;
   font-size: 14px;
   padding-top: 20px;
