@@ -73,7 +73,7 @@ function Cadastro() {
 
     setCarregando(true)
     try {
-      const resposta = await api.post('/cadastro', { nome, cpf, telefone, email, senha })
+      const resposta = await api.post('/auth/cadastro', { nome, cpf, telefone, email, senha })
       localStorage.setItem('spl_token', resposta.data.token)
       navigate('/triagem', { state: { cadastroSucesso: true } })
       alert('Cadastro efetuado com sucesso!')
@@ -85,15 +85,15 @@ function Cadastro() {
   }
 
   return (
-    <div className="container">
+    <div className="">
       <div className="card">
         <div className="logo">
           <button className="button_logo">+</button>
           <h3>SPL</h3>
-          <p>Saúde em Primeiro Lugar</p>
+          <p className='text-auth'>Saúde em Primeiro Lugar</p>
         </div>
 
-        <div className="form">
+        <div className="form-auth">
           <h2>Criar conta</h2>
           <form onSubmit={handleCadastro}>
 
@@ -154,18 +154,18 @@ function Cadastro() {
 
             {erro && <p className="erro-api">{erro}</p>}
 
-            <button type="submit" disabled={carregando}>
+            <button className="btn-auth" type="submit" disabled={carregando}>
               {carregando ? 'Cadastrando...' : 'Cadastrar'}
             </button>
           </form>
 
-          <p>
+          <p className='text-auth'>
             Já tem conta?{' '}
             <span className="link" onClick={() => navigate('/')}>
               Entrar
             </span>
           </p>
-          <p className='dados'>
+          <p className='dados text-auth'>
             Seus dados são protegidos e não serão compartilhados.
           </p>
         </div>

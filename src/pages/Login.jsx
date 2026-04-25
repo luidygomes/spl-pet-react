@@ -41,7 +41,7 @@ function Login() {
     setCarregando(true)
 
     try {
-      const resposta = await api.post('/login', { email, senha })
+      const resposta = await api.post('/auth/login', { email, senha })
       localStorage.setItem('spl_token', resposta.data.token)
       if (resposta.data.triagem_concluida === true) {
         alert('Dashboard disponível em breve!')
@@ -56,15 +56,15 @@ function Login() {
   }
 
   return (
-    <div className="container">
+    <div className="">
       <div className="card">
         <div className="logo">
           <button className="button_logo">+</button>
           <h3>SPL</h3>
-          <p>Saúde em Primeiro Lugar</p>
+          <p className="text-auth">Saúde em Primeiro Lugar</p>
         </div>
 
-        <div className="form">
+        <div className="form-auth">
           <h2>Entrar</h2>
           <form onSubmit={handleLogin}>
             <label htmlFor="email">E-mail</label>
@@ -87,12 +87,12 @@ function Login() {
 
             {erro && <p className="erro-api">{erro}</p>}
 
-            <button type="submit" disabled={carregando}>
+            <button className="btn-auth" type="submit" disabled={carregando}>
               {carregando ? 'Entrando...' : 'Entrar'}
             </button>
           </form>
 
-          <p>
+          <p className="text-auth">
             Não tem conta?{' '}
             <span className="link" onClick={() => navigate('/cadastro')}>
               Criar conta

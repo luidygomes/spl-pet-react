@@ -1,11 +1,19 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "/index.html",
+    "./src/**/*.{js,jsx}"
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'primary-green':'#006d4e'
+      },
+      fontFamily: {
+        display: ['"DM Serif Display"', 'serif'],
+      },
+    },
   },
   plugins: [],
 }
+
