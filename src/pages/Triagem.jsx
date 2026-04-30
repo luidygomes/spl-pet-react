@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
-import './triagem.css'
 
 function Triagem() {
   const navigate = useNavigate()
@@ -16,8 +15,9 @@ function Triagem() {
   const [apiErro, setApiErro] = useState('')
 
   function handleChange(e) {
-    const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value}))
+    const { name, value, type } = e.target
+    const processedValue = type === 'number' ? (value === '' ? '' : parseFloat(value)) : value
+    setForm(prev => ({ ...prev, [name]: processedValue}))
     setErros(prev => ({ ...prev, [name]: ''}))
   }
 
@@ -30,7 +30,7 @@ function Triagem() {
         condicoes: checked ? ['nenhuma'] : []
       }))
     } else {
-      // se marcou outra opção, remove nenhuma e atualiza
+      // se marcou outra opção, remove 'nenhuma' e atualiza
       setForm(prev => ({
         ...prev,
         condicoes: checked
@@ -57,10 +57,10 @@ function Triagem() {
     if (!form.sexo)
       erros.sexo = 'Selecione uma opção.'
 
-    if (form.peso_kg < 0 || !form.peso_kg)
+    if (form.peso_kg === '' || isNaN(form.peso_kg) || form.peso_kg <= 0)
       erros.peso_kg = 'Informe seu peso.'
 
-    if (form.altura_cm < 0 || !form.altura_cm)
+    if (form.altura_cm === '' || isNaN(form.altura_cm) || form.altura_cm <= 0)
       erros.altura_cm = 'Informe sua altura.'
 
     if (form.condicoes.length === 0)
@@ -90,17 +90,11 @@ function Triagem() {
     setLoading(true)
     setApiErro('')
 
-
     try {
       const resposta = await api.post('/triagem', form)
-      alert(resposta.data.mensagem + '\n' +  
-            ' IMC:' + resposta.data.imc + '\n' + 
-            ' classificação:' + resposta.data.classificacao + '\n' +
-            ' linhas de cuidado:' + resposta.data.linhas_cuidado.join(", "))
-
+      navigate('/dashboard')
     } catch (erro) {
       if (erro.response) {
-    // Erro HTTP retornado pelo Flask (400, 409 etc.) // erro.response.data.erro contém a mensagem do backend.
         setApiErro(erro.response.data.erro) 
       } else {
         setApiErro('Não foi possível conectar ao servidor.')
@@ -113,7 +107,7 @@ function Triagem() {
   return (
     <div className='font-sans'>
       <div className=' bg-white rounded-xl w-[100%] max-w-[420px] pt-[32px] pr-[28px] pb-[28px] pl-[28px] shadow-xl'>
-        <div className='flex-col mt-15 pl-5 pr-5'>
+        <div className='flex-col mt-15'>
 
             <div className='flex justify-center bg-[#2e7d55] text-white text-[40px] h-[52px] w-[52px] rounded-[20%] cursor-default mb-[20px] ml-auto mr-auto mt-0 '>
               <svg className='stroke-white w-8 fill-none stroke-[2.2]' viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -173,13 +167,13 @@ function Triagem() {
               <div className='flex gap-4'>
                 <div className='flex flex-col gap-1'>
                   <label className='text-[13px] font-medium text-[#374b3e]' htmlFor="peso">Peso (kg)</label>
-                  <input className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid border-[#ccddd4] rounded-t-[6px] rounded-b-[6px] ${erros.peso_kg ? 'border-[#c0392b]' : 'border-[#ccddd4]'} text-inherit text-[14px] bg-white text-[#1c2b22]`} type="number" name="peso_kg" name="peso_kg" value={form.peso_kg} min="20" onChange={handleChange}/>
+                  <input className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid ${erros.peso_kg ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} type="number" name="peso_kg" value={form.peso_kg} min="20" onChange={handleChange}/>
                   {erros.peso_kg && <p className="text-red-500 text-xs pt-0 mb-3">{erros.peso_kg}</p>}
                 </div>
 
                 <div className='flex flex-col gap-1'>
                   <label className='text-[13px] font-medium text-[#374b3e]'>Altura(cm)</label>
-                  <input className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid border-[#ccddd4] ${erros.altura_cm ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} type="number" name="altura_cm" name="altura_cm" value={form.altura_cm} min="50" onChange={handleChange}/>
+                  <input className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid ${erros.altura_cm ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} type="number" name="altura_cm" value={form.altura_cm} min="50" onChange={handleChange}/>
                   {erros.altura_cm && <p className="text-red-500 text-xs pt-0 mb-3">{erros.altura_cm}</p>}
                 </div>
               </div>
@@ -239,7 +233,7 @@ function Triagem() {
                 <label for="atividade" className='text-[13px] font-medium text-[#374b3e]'>Nível de atividade física</label>
                 <div className="relative">
 
-                  <select className={`focus:border-[#2e7d55] focus:shadow-md transition pr-[36px] cursor-pointer outline-none w-full px-[12px] py-[7px] border-[1.5px] border-solid border-[#ccddd4] ${erros.nivel_atividade ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} 
+                  <select className={`focus:border-[#2e7d55] focus:shadow-md transition pr-[36px] cursor-pointer outline-none w-full px-[12px] py-[7px] border-[1.5px] border-solid ${erros.nivel_atividade ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} 
                                     name="nivel_atividade" 
                                     id="atividade" 
                                     value={form.nivel_atividade}
@@ -257,7 +251,7 @@ function Triagem() {
                 </div>
               </div>
 
-              <div className='flex justify-center'>    
+              <div className='flex justify-center m-[-10px]'>    
                 {apiErro && (
                 <p className="text-red-600 text-sm bg-red-50 rounded-lg">
                 {apiErro}

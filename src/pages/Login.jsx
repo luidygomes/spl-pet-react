@@ -49,7 +49,11 @@ function Login() {
         navigate('/triagem')
       }
     } catch (err) {
-      setErro(err.response?.data?.erro || 'Usuário ou senha inválido.')
+      if (err.response) {
+        setErro(err.response?.data?.erro)
+      } else {
+        setErro('Não foi possível conectar ao servidor.')
+      }
     } finally {
       setCarregando(false)
     }
