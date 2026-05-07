@@ -11,18 +11,19 @@ body {
   background-color: #f4f8f5;
   font-family: sans-serif;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
 }
 
 #root {
+  min-height: 100vh;
+  border: none;
+}
+
+.auth-page {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  border: none;
+  padding: 24px 16px;
 }
 
 .card {
