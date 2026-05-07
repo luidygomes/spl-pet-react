@@ -25,6 +25,7 @@ function Triagem() {
     const { value, checked } = e.target
 
     if (value === 'nenhuma') {
+      //se marcou 'nenhuma', remove as outras opções
       setForm(prev => ({
         ...prev,
         condicoes: checked ? ['nenhuma'] : []
@@ -43,6 +44,7 @@ function Triagem() {
   }
 
   function handleMedicamentos(e) {
+    //converter para numero inteiro
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: parseInt(value) }))
     setErros(prev => ({ ...prev, [name]: ''}))
@@ -105,8 +107,8 @@ function Triagem() {
   }
 
   return (
-    <div className='font-sans'>
-      <div className=' bg-white rounded-xl w-[100%] max-w-[420px] pt-[32px] pr-[28px] pb-[28px] pl-[28px] shadow-xl'>
+    <div className='auth-page'>
+      <div className='font-sans bg-white rounded-xl w-[100%] max-w-[420px] pt-[32px] pr-[28px] pb-[28px] pl-[28px] shadow-xl'>
         <div className='flex-col mt-15'>
 
             <div className='flex justify-center bg-[#2e7d55] text-white text-[40px] h-[52px] w-[52px] rounded-[20%] cursor-default mb-[20px] ml-auto mr-auto mt-0 '>

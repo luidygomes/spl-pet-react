@@ -85,7 +85,7 @@ function Cadastro() {
   }
 
   return (
-    <div className="">
+    <div className="auth-page">
       <div className="card">
         <div className="logo">
           <button className="button_logo">+</button>

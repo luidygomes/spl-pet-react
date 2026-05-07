@@ -44,7 +44,7 @@ function Login() {
       const resposta = await api.post('/auth/login', { email, senha })
       localStorage.setItem('spl_token', resposta.data.token)
       if (resposta.data.triagem_concluida === true) {
-        alert('Dashboard disponível em breve!')
+        navigate('/dashboard')
       } else if (resposta.data.triagem_concluida === false) {
         navigate('/triagem')
       }
@@ -60,7 +60,7 @@ function Login() {
   }
 
   return (
-    <div className="">
+    <div className="auth-page">
       <div className="card">
         <div className="logo">
           <button className="button_logo">+</button>
