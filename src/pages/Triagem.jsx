@@ -13,10 +13,23 @@ function Triagem() {
   const [erros, setErros] = useState({})
   const [loading, setLoading] = useState(false)
   const [apiErro, setApiErro] = useState('')
+  const [etapa, setEtapa] = useState(1)
+  const [showConfirmacao, setShowConfirmacao] = useState(false)
 
   function handleChange(e) {
-    const { name, value, type } = e.target
-    const processedValue = type === 'number' ? (value === '' ? '' : parseFloat(value)) : value
+    let { name, value, type } = e.target
+    
+    if (name === 'peso_kg') {
+      value = value.replace(',', '.')
+      value = value.replace(/[^0-9.]/g, '')
+      const partes = value.split('.')
+      if (partes.length > 2) {
+        value = partes[0] + '.' + partes.slice(1).join('')
+      }
+    }
+
+    const processedValue = type === 'number' && name !== 'peso_kg' ? (value === '' ? '' : parseFloat(value)) : value
+    
     setForm(prev => ({ ...prev, [name]: processedValue}))
     setErros(prev => ({ ...prev, [name]: ''}))
   }
@@ -50,45 +63,58 @@ function Triagem() {
     setErros(prev => ({ ...prev, [name]: ''}))
   }
 
-  function validar() {
-    const erros = {}
+  function validarEtapa() {
+    const novosErros = {}
+    
+    if (etapa === 1) {
+      if (!form.data_nascimento)
+        novosErros.data_nascimento = 'Por favor, informe sua data de nascimento.'
+      if (!form.sexo)
+        novosErros.sexo = 'Selecione uma opção.'
+    } else if (etapa === 2) {
+      if (form.peso_kg === '' || isNaN(form.peso_kg) || form.peso_kg <= 0)
+        novosErros.peso_kg = 'Informe seu peso.'
+      if (form.altura_cm === '' || isNaN(form.altura_cm) || form.altura_cm <= 0)
+        novosErros.altura_cm = 'Informe sua altura.'
+    } else if (etapa === 3) {
+      if (form.condicoes.length === 0)
+        novosErros.condicoes = 'Selecione ao menos uma opção.'
+      if (form.usa_medicamentos === null)
+        novosErros.usa_medicamentos = 'Selecione uma opção.'
+      if (!form.nivel_atividade)
+        novosErros.nivel_atividade = 'Selecione seu nível de atividade.'
+    }
 
-    if (!form.data_nascimento)
-      erros.data_nascimento = 'Por favor, informe sua data de nascimento.'
-
-    if (!form.sexo)
-      erros.sexo = 'Selecione uma opção.'
-
-    if (form.peso_kg === '' || isNaN(form.peso_kg) || form.peso_kg <= 0)
-      erros.peso_kg = 'Informe seu peso.'
-
-    if (form.altura_cm === '' || isNaN(form.altura_cm) || form.altura_cm <= 0)
-      erros.altura_cm = 'Informe sua altura.'
-
-    if (form.condicoes.length === 0)
-      erros.condicoes = 'Selecione ao menos uma opção.'
-
-    if(form.usa_medicamentos === null)
-      erros.usa_medicamentos = 'Selecione uma opção.'
-
-    if(!form.nivel_atividade)
-      erros.nivel_atividade = 'Selecione seu nível de atividade.'
-
-    return erros
+    return novosErros
   }
 
-  async function handleSubmit(e) {
+  function handleContinuar(e) {
     e.preventDefault()
 
-    // Para aqui se a validação encontrar erros.
-
-    const novosErros = validar()
+    const novosErros = validarEtapa()
 
     if (Object.keys(novosErros).length > 0) {
       setErros(novosErros)
       return
     }
 
+    if (etapa < 3) {
+      setEtapa(etapa + 1)
+    } else {
+      setShowConfirmacao(true)
+    }
+  }
+
+  function handleVoltar(e) {
+    e.preventDefault()
+    if (showConfirmacao) {
+      setShowConfirmacao(false)
+    } else if (etapa > 1) {
+      setEtapa(etapa - 1)
+    }
+  }
+
+  async function confirmarEnvio() {
     setLoading(true)
     setApiErro('')
 
@@ -117,155 +143,229 @@ function Triagem() {
 
           <div className='mb-8'>
             <div className='h-2 bg-[#ccddd4] rounded-xl overflow-hidden'>
-              <div className='h-[100%] w-[50%] bg-[#2e7d55] rounded-xl'></div>
+              <div className='h-[100%] bg-[#2e7d55] rounded-xl transition-all duration-300' style={{ width: `${showConfirmacao ? 100 : (etapa / 3) * 100}%` }}></div>
             </div>
-            <div className='text-[12px] mt-2 text-[#5a7265]'>Etapa 1 de 2</div>
+            <div className='text-[12px] mt-2 text-[#5a7265]'>
+              {showConfirmacao ? 'Confirmação' : `Etapa ${etapa} de 3`}
+            </div>
           </div>
 
           <div className='text-center mt-[22px] mb-[6px]'>
             <h1 className='font-serif text-[21px] flex items-center justify-center gap-2 text-[#1c2b22]'>
               <svg className='w-[20px] h-[20px] stroke-[#2e7d55] stroke-2 fill-none stroke-linecap-round stroke-linejoin-round' viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><rect x="9" y="3" width="6" height="4" rx="2"></rect><path d="M9 12h6M9 16h4"></path></svg>  
-              Triagem de saúde
+              {showConfirmacao ? 'Confirme seus dados' : 'Triagem de saúde'}
             </h1>
-            <p className='font-sans text-[13px] leading-5 text-[#5a7265] '>Responda com atenção para montarmos seu perfil personalizado.</p>
+            <p className='font-sans text-[13px] leading-5 text-[#5a7265] '>
+              {showConfirmacao ? 'Verifique se as informações abaixo estão corretas.' : 'Responda com atenção para montarmos seu perfil personalizado.'}
+            </p>
           </div>
             
-            <form className='flex flex-col gap-[17px] mt-6' onSubmit={handleSubmit}>
+          <form className='flex flex-col gap-[17px] mt-6' onSubmit={showConfirmacao ? (e) => e.preventDefault() : handleContinuar}>
 
-              {/* Data de Nascimento */}
-              <div className='flex flex-col gap-[6px]'>
-                <label className='text-[13px] font-medium text-[#374b3e]' htmlFor="datanascimento">Data de Nascimento</label>
-                <input 
-                  name="data_nascimento"
-                  value={form.data_nascimento} 
-                  onChange={handleChange} 
-                  className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid ${erros.data_nascimento ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22] `}
-                  id="datanascimento" 
-                  type="date"
-                  />
-                {erros.data_nascimento && (
-                  <p className="text-red-500 text-xs pt-0 mb-3">{erros.data_nascimento}</p>
+            {!showConfirmacao && etapa === 1 && (
+              <>
+                {/* Data de Nascimento */}
+                <div className='flex flex-col gap-[6px]'>
+                  <label className='text-[13px] font-medium text-[#374b3e]' htmlFor="datanascimento">Data de Nascimento</label>
+                  <input 
+                    name="data_nascimento"
+                    value={form.data_nascimento} 
+                    onChange={handleChange} 
+                    className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid ${erros.data_nascimento ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22] `}
+                    id="datanascimento" 
+                    type="date"
+                    />
+                  {erros.data_nascimento && (
+                    <p className="text-red-500 text-xs pt-0 mb-3">{erros.data_nascimento}</p>
+                  )}
+                </div>
+
+                {/* Sexo Biológico */}
+                <div className='flex flex-col gap-[6px]'>
+                  <p className='text-[13px] font-medium text-[#374b3e]'>Sexo Biológico</p>
+                  <div className="flex flex-col gap-2">
+                    <label className='flex items-center gap-[10px] cursor-pointer'>
+                      <input className="accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] rounded-md flex items-center" type="radio" id="m" name="sexo" value="masculino" checked={form.sexo === 'masculino'} onChange={handleChange}/>
+                      <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="m">Masculino</label>
+                    </label>
+
+                    <label className='flex items-center gap-[10px] cursor-pointer'>
+                      <input className="accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center" type="radio" id="f" name="sexo" value="feminino" checked={form.sexo === 'feminino'} onChange={handleChange}/>
+                      <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="f">Feminino</label>
+                    </label>
+                  </div>
+                  {erros.sexo && <p className="text-red-500 text-xs pt-0 mb-3">{erros.sexo}</p>}
+                </div>
+              </>
+            )}
+
+            {!showConfirmacao && etapa === 2 && (
+              <>
+                {/* Peso e Altura */}
+                <div className='flex gap-4'>
+                  <div className='flex flex-col gap-1 w-1/2'>
+                    <label className='text-[13px] font-medium text-[#374b3e]' htmlFor="peso">Peso (kg)</label>
+                    <input className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid ${erros.peso_kg ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} type="text" inputMode="decimal" name="peso_kg" value={form.peso_kg} onChange={handleChange}/>
+                    {erros.peso_kg && <p className="text-red-500 text-xs pt-0 mb-3">{erros.peso_kg}</p>}
+                  </div>
+
+                  <div className='flex flex-col gap-1 w-1/2'>
+                    <label className='text-[13px] font-medium text-[#374b3e]'>Altura (cm)</label>
+                    <input className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid ${erros.altura_cm ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} type="number" name="altura_cm" value={form.altura_cm} min="50" onChange={handleChange}/>
+                    {erros.altura_cm && <p className="text-red-500 text-xs pt-0 mb-3">{erros.altura_cm}</p>}
+                  </div>
+                </div>
+                
+                {form.peso_kg > 0 && form.altura_cm > 0 && (
+                  <div className='flex justify-between items-center bg-[#f0fdf4] border border-[#bbf7d0] p-3 rounded-md mt-2 shadow-sm transition-all'>
+                    <span className='text-[13px] font-medium text-[#166534]'>Seu IMC estimado:</span>
+                    <strong className='text-[16px] font-sans text-[#15803d]'>
+                      {(form.peso_kg / ((form.altura_cm / 100) * (form.altura_cm / 100))).toFixed(1)}
+                    </strong>
+                  </div>
                 )}
-              </div>
+              </>
+            )}
 
-              {/* Sexo Biológico */}
-              <div className='flex flex-col gap-[6px]'>
-                <p className='text-[13px] font-medium text-[#374b3e]'>Sexo Biológico</p>
-                <div className="flex flex-col gap-2">
-                  <label className='flex items-center gap-[10px] cursor-pointer'>
-                    <input className="accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] rounded-md flex items-center" type="radio" id="m" name="sexo" value="masculino" onChange={handleChange}/>
-                    <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="m">Masculino</label>
-                  </label>
+            {!showConfirmacao && etapa === 3 && (
+              <>
+                {/* Condição de Saúde */}
+                <div className='flex flex-col gap-[6px]'>
+                  <p className='text-[13px] font-medium text-[#374b3e]'>Você possui alguma condição de saúde diagnosticada?</p>
+                  <div className='flex flex-col gap-2'>
 
-                  <label className='flex items-center gap-[10px] cursor-pointer'>
-                    <input className="accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center" type="radio" id="f" name="sexo" value="feminino" onChange={handleChange}/>
-                    <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="f">Feminino</label>
-                  </label>
+                    <label className='flex items-center gap-2 cursor-pointer'>
+                      <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="checkbox" id="hipertenso" name="condicoes" value="hipertensao" checked={form.condicoes.includes('hipertensao')} onChange={handleCondicoes}/>
+                      <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="hipertenso">Hipertensão</label>
+                    </label>
+
+                    <label className='flex items-center gap-2 cursor-pointer'>
+                      <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="checkbox" id="diabetes" name="condicoes" value="diabetes" checked={form.condicoes.includes('diabetes')} onChange={handleCondicoes}/>
+                      <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="diabetes">Diabetes</label>
+                    </label>
+
+                    <label className='flex items-center gap-2 cursor-pointer'>
+                      <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="checkbox" id="obesidade" name="condicoes" value="obesidade" checked={form.condicoes.includes('obesidade')} onChange={handleCondicoes}/>
+                      <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="obesidade">Obesidade</label>
+                    </label>
+
+                    <label className='flex items-center gap-2 cursor-pointer'>
+                      <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center'type="checkbox" id="nenhuma" name="condicoes" value="nenhuma" checked={form.condicoes.includes('nenhuma')} onChange={handleCondicoes}/>
+                      <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="nenhuma">Nenhuma</label>
+                    </label>
+
+                    {erros.condicoes && <p className="text-red-500 text-xs pt-0 mb-3">{erros.condicoes}</p>}
+
+                  </div>
                 </div>
-                {erros.sexo && <p className="text-red-500 text-xs pt-0 mb-3">{erros.sexo}</p>}
-              </div>
 
-              {/* Peso e Altura */}
-              <div className='flex gap-4'>
-                <div className='flex flex-col gap-1'>
-                  <label className='text-[13px] font-medium text-[#374b3e]' htmlFor="peso">Peso (kg)</label>
-                  <input className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid ${erros.peso_kg ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} type="number" name="peso_kg" value={form.peso_kg} min="20" onChange={handleChange}/>
-                  {erros.peso_kg && <p className="text-red-500 text-xs pt-0 mb-3">{erros.peso_kg}</p>}
+                {/*Uso de medicamentos */}
+                <div className='flex flex-col gap-2'>  
+                  <p className='text-[13px] font-medium text-[#374b3e]'>Você faz uso regular de medicamentos?</p>
+                  <div className='flex flex-col gap-2'> 
+
+                    <label className='flex items-center gap-2 cursor-pointer'>
+                      <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="radio" id="s" name="usa_medicamentos" value="1" checked={form.usa_medicamentos === 1} onChange={handleMedicamentos}/>
+                      <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="s">Sim</label>
+                    </label>
+
+                    <label className='flex items-center gap-2 cursor-pointer'>
+                      <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="radio" id="n" name="usa_medicamentos" value="0" checked={form.usa_medicamentos === 0} onChange={handleMedicamentos}/>
+                      <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="n">Não</label>
+                    </label>
+
+                    {erros.usa_medicamentos && (<p className="text-red-500 text-xs pt-0 mb-3">{erros.usa_medicamentos}</p>)}
+
+                  </div>
                 </div>
 
-                <div className='flex flex-col gap-1'>
-                  <label className='text-[13px] font-medium text-[#374b3e]'>Altura(cm)</label>
-                  <input className={`focus:border-[#2e7d55] focus:shadow-md transition outline-none w-full px-[12px] py-[10px] border-[1.5px] border-solid ${erros.altura_cm ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} type="number" name="altura_cm" value={form.altura_cm} min="50" onChange={handleChange}/>
-                  {erros.altura_cm && <p className="text-red-500 text-xs pt-0 mb-3">{erros.altura_cm}</p>}
-                </div>
-              </div>
-
-              {/* Condição de Saúde */}
-              <div className='flex flex-col gap-[6px]'>
-                <p className='text-[13px] font-medium text-[#374b3e]'>Você possui alguma condição de saúde diagnosticada?</p>
+                {/*Nível de atividade física */}
                 <div className='flex flex-col gap-2'>
+                  <label htmlFor="atividade" className='text-[13px] font-medium text-[#374b3e]'>Nível de atividade física</label>
+                  <div className="relative">
 
-                  <label className='flex items-center gap-2 cursor-pointer'>
-                    <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="checkbox" id="hipertenso" name="condicoes" value="hipertensao" checked={form.condicoes.includes('hipertensao')} onChange={handleCondicoes}/>
-                    <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="hipertenso">Hipertensão</label>
-                  </label>
+                    <select className={`focus:border-[#2e7d55] focus:shadow-md transition pr-[36px] cursor-pointer outline-none w-full px-[12px] py-[7px] border-[1.5px] border-solid ${erros.nivel_atividade ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} 
+                                      name="nivel_atividade" 
+                                      id="atividade" 
+                                      value={form.nivel_atividade}
+                                      onChange={handleChange}>
+                      <option name="nivel_atividade" value="">Selecione...</option>
+                      <option name="nivel_atividade" value="sedentario">Sedentário</option>
+                      <option name="nivel_atividade" value="leve">Levemente ativo</option>
+                      <option name="nivel_atividade" value="moderado">Moderadamente ativo</option>
+                      <option name="nivel_atividade" value="intenso">Muito ativo</option>
+                      <option name="nivel_atividade" value="extremo">Extremamente ativo</option>
+                    </select>
 
-                  <label className='flex items-center gap-2 cursor-pointer'>
-                    <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="checkbox" id="diabetes" name="condicoes" value="diabetes" checked={form.condicoes.includes('diabetes')} onChange={handleCondicoes}/>
-                    <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="diabetes">Diabetes</label>
-                  </label>
+                    {erros.nivel_atividade && <p className="text-red-500 text-xs pt-0 mb-3">{erros.nivel_atividade}</p>}
 
-                  <label className='flex items-center gap-2 cursor-pointer'>
-                    <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="checkbox" id="obesidade" name="condicoes" value="obesidade" checked={form.condicoes.includes('obesidade')} onChange={handleCondicoes}/>
-                    <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="obesidade">Obesidade</label>
-                  </label>
-
-                  <label className='flex items-center gap-2 cursor-pointer'>
-                    <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center'type="checkbox" id="nenhuma" name="condicoes" value="nenhuma" checked={form.condicoes.includes('nenhuma')} onChange={handleCondicoes}/>
-                    <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="nenhuma">Nenhuma</label>
-                  </label>
-
-                  {erros.condicoes && <p className="text-red-500 text-xs pt-0 mb-3">{erros.condicoes}</p>}
-
+                  </div>
                 </div>
+              </>
+            )}
+
+            {showConfirmacao && (
+              <div className="mb-4 text-left text-[14px] flex flex-col gap-2 w-full text-black">
+                <p><strong>Data de Nascimento:</strong> {form.data_nascimento.split('-').reverse().join('/')}</p>
+                <p><strong>Sexo:</strong> <span className='capitalize'>{form.sexo}</span></p>
+                <p><strong>Peso:</strong> {form.peso_kg} kg</p>
+                <p><strong>Altura:</strong> {form.altura_cm} cm</p>
+                <p><strong>Condições:</strong> <span className='capitalize'>{form.condicoes.join(', ')}</span></p>
+                <p><strong>Usa Medicamentos:</strong> {form.usa_medicamentos === 1 ? 'Sim' : 'Não'}</p>
+                <p><strong>Nível de Atividade:</strong> <span className='capitalize'>{form.nivel_atividade}</span></p>
               </div>
+            )}
 
-              {/*Uso de medicamentos */}
-              <div className='flex flex-col gap-2'>  
-                <p className='text-[13px] font-medium text-[#374b3e]'>Você faz uso regular de medicamentos?</p>
-                 <div className='flex flex-col gap-2'> 
+            <div className='flex justify-center m-[-10px]'>    
+              {apiErro && (
+              <p className="text-red-600 text-sm bg-red-50 rounded-lg">
+              {apiErro}
+              </p>
+              )}
+            </div>
 
-                  <label className='flex items-center gap-2 cursor-pointer'>
-                    <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="radio" id="s" name="usa_medicamentos" value="1" onChange={handleMedicamentos}/>
-                    <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="s">Sim</label>
-                  </label>
+            <div className='flex gap-2 mt-2'>
+              {showConfirmacao ? (
+                <>
+                  <button 
+                    className='w-full p-3 border-none rounded-lg bg-[#a1a1a2] hover:bg-[#8f8f90] transition text-white cursor-pointer font-medium' 
+                    type="button" 
+                    onClick={handleVoltar}
+                    disabled={loading}
+                  >
+                    Voltar
+                  </button>
+                  <button 
+                    className='w-full p-3 border-none rounded-lg bg-[#1a4a3a] hover:bg-[#2d6a50] transition text-white cursor-pointer font-medium' 
+                    type="button" 
+                    disabled={loading}
+                    onClick={confirmarEnvio}
+                  >
+                    {loading ? 'Enviando dados...' : 'Confirmar'}
+                  </button>
+                </>
+              ) : (
+                <>
 
-                  <label className='flex items-center gap-2 cursor-pointer'>
-                    <input className='accent-[#2e7d55] w-[18px] h-[18px] min-h-[18px] border-2 border-solid border-[#ccddd4] rounded-md flex items-center' type="radio" id="n" name="usa_medicamentos" value="0" onChange={handleMedicamentos}/>
-                    <label className='font-medium text-[13px] text-[#374b3e]' htmlFor="n">Não</label>
-                  </label>
+                  {etapa > 1 && (
+                    <button 
+                      className='w-full p-3 border-none rounded-lg bg-[#a1a1a2] hover:bg-[#8f8f90] transition text-white cursor-pointer font-medium' 
+                      type="button" 
+                      onClick={handleVoltar}
+                    >
+                      Voltar
+                    </button>
+                  )}
+                  <button 
+                    className='w-full p-3 border-none rounded-lg bg-[#1a4a3a] hover:bg-[#2d6a50] transition text-white cursor-pointer font-medium' 
+                    type="submit"
+                  >
+                    Continuar
+                  </button>
+                </>
+              )}
+            </div>
 
-                  {erros.usa_medicamentos && (<p className="text-red-500 text-xs pt-0 mb-3">{erros.usa_medicamentos}</p>)}
-
-                </div>
-              </div>
-
-              {/*Nível de atividade física */}
-              <div className='flex flex-col gap-2'>
-                <label for="atividade" className='text-[13px] font-medium text-[#374b3e]'>Nível de atividade física</label>
-                <div className="relative">
-
-                  <select className={`focus:border-[#2e7d55] focus:shadow-md transition pr-[36px] cursor-pointer outline-none w-full px-[12px] py-[7px] border-[1.5px] border-solid ${erros.nivel_atividade ? 'border-[#c0392b]' : 'border-[#ccddd4]'} rounded-t-[6px] rounded-b-[6px] text-inherit text-[14px] bg-white text-[#1c2b22]`} 
-                                    name="nivel_atividade" 
-                                    id="atividade" 
-                                    value={form.nivel_atividade}
-                                    onChange={handleChange}>
-                    <option name="nivel_atividade" value selected>Selecione...</option>
-                    <option name="nivel_atividade" value="sedentario">Sedentário</option>
-                    <option name="nivel_atividade" value="leve">Levemente ativo</option>
-                    <option name="nivel_atividade" value="moderado">Moderadamente ativo</option>
-                    <option name="nivel_atividade" value="intenso">Muito ativo</option>
-                    <option name="nivel_atividade" value="extremo">Extremamente ativo</option>
-                  </select>
-
-                  {erros.nivel_atividade && <p className="text-red-500 text-xs pt-0 mb-3">{erros.nivel_atividade}</p>}
-
-                </div>
-              </div>
-
-              <div className='flex justify-center m-[-10px]'>    
-                {apiErro && (
-                <p className="text-red-600 text-sm bg-red-50 rounded-lg">
-                {apiErro}
-                </p>
-                )}
-              </div>
-
-              <button className='w-full p-3 border-none rounded-lg bg-[#1a4a3a] hover:bg-[#2d6a50] transition text-white cursor-pointer mt-2 font-medium' type="submit" disabled={loading}>
-                {loading ? 'Enviando dados...' : 'Continuar'}
-              </button>
-
-              <button className='w-full p-[11px] bg-transparent text-[#5a7265] text-[14px] font-medium border-none cursor-pointer'>Voltar</button>
           </form>
 
         </div>
