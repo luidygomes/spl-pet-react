@@ -8,7 +8,7 @@
 }
 
 body {
-  background-color: #f4f8f5;
+  background-color: #f0f4f8;
   font-family: sans-serif;
   min-height: 100vh;
 }
@@ -28,11 +28,10 @@ body {
 
 .card {
   margin: 40px 0 40px 0;
-  width: 500px;
+  width: 470px;
   padding: 0 0 40px 0; 
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
 }
 
 .card h2 {

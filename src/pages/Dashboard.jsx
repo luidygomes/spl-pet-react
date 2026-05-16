@@ -34,6 +34,23 @@ function Dashboard() {
     }
   }
 
+  const getImcBadgeStyle = (classificacao) => {
+    switch (classificacao) {
+      case 'Abaixo do peso':
+      case 'Sobrepeso':
+        return 'bg-[#fef3c7] text-[#92400e]' // Amarelo
+      case 'Normal':
+        return 'bg-[#dcfce7] text-[#166534]' // Verde
+      case 'Obesidade Grau I':
+      case 'Obesidade Grau II':
+        return 'bg-[#fee2e2] text-[#991b1b]' // Vermelho
+      case 'Obesidade Grau III':
+        return 'bg-[#fca5a5] text-[#7f1d1d]' // Vermelho escuro
+      default:
+        return 'bg-[#f3f4f6] text-[#374151]' // Cinza default
+    }
+  }
+
   const getOrderedRecommendations = () => {
     if (!info.recomendacoes.length || !info.linhas_cuidado.length) {
       return info.recomendacoes
@@ -265,7 +282,7 @@ function Dashboard() {
               ) : (
               <div className='text-[26px] font-serif text-[#1c2b22] mb-[8px]'>{info.imc}</div>
               )}
-              <span className='inline-flex items-center pt-[3px] pb-[3px] pl-[10px] pr-[10px] rounded-[99px] text-[12px] font-[600] bg-[#fee2e2] text-[#b91c1c]'>{info.classificacao}</span>
+              <span className={`inline-flex items-center pt-[3px] pb-[3px] pl-[10px] pr-[10px] rounded-[99px] text-[12px] font-[600] ${getImcBadgeStyle(info.classificacao)}`}>{info.classificacao}</span>
             </div>
 
             {/* NIVEL DE ATIVIDADE */}
