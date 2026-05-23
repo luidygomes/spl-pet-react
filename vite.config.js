@@ -3,9 +3,14 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/setupTests.js',
+  },
   server: {
     watch: {
-      usePolling: true  // ← essa linha resolve o problema do WSL
+      usePolling: true //WSL
     }
   }
 })

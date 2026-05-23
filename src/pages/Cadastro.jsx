@@ -179,7 +179,7 @@ function Cadastro() {
           </form>
         ) : (
           <form className='flex flex-col gap-[17px] mt-6' onSubmit={handleCadastro}>
-            <h2 className='font-serif text-[18px] text-[#1c2b22] text-center mb-2'>Criar conta</h2>
+            <h2 className='font-serif text-[18px] text-[#1c2b22] text-left mb-2'>Criar conta</h2>
 
             <div className='flex flex-col gap-[6px]'>
               <label className='text-[13px] font-medium text-[#374b3e]' htmlFor="nome">Nome</label>
